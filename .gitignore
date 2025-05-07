@@ -80,3 +80,4 @@ $RECYCLE.BIN/
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+**/.claude/settings.local.json

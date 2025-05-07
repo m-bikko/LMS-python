@@ -32,7 +32,7 @@ A streamlined Learning Management System built with Python and Flask, focusing o
 1. Clone the repository:
    ```
    git clone <repository-url>
-   cd LMS-new-on-python
+   cd LMS-python
    ```
 
 2. Create a virtual environment:
@@ -67,6 +67,12 @@ A streamlined Learning Management System built with Python and Flask, focusing o
    ```
    python app.py
    ```
+   
+   Alternatively, you can use the provided script:
+   ```
+   ./run.sh    # On Linux/macOS
+   run.bat     # On Windows
+   ```
 
 8. Access the application at http://127.0.0.1:5002
 
@@ -75,12 +81,12 @@ A streamlined Learning Management System built with Python and Flask, focusing o
 1. Clone the repository:
    ```
    git clone <repository-url>
-   cd LMS-new-on-python
+   cd LMS-python
    ```
 
 2. Copy the example environment file and customize as needed:
    ```
-   cp .env.example .env
+   cp .env-example .env
    ```
 
 3. Build and start the Docker containers:
@@ -110,21 +116,21 @@ A streamlined Learning Management System built with Python and Flask, focusing o
 The system is initialized with the following demo accounts:
 
 - **Admin**:
-  - Email: admin@gmail.com
-  - Password: qweasdqwe123
+  - Email: admin@example.com
+  - Password: adminpassword
 
 - **Teacher**:
-  - Email: teacher@gmail.com
-  - Password: qwesadqwe123
+  - Email: teacher@example.com
+  - Password: teacherpass
 
 - **Student**:
-  - Email: student@gmail.com
-  - Password: qweasdqwe123
+  - Email: student@example.com
+  - Password: studentpass
 
 ## Technical Stack
 
 - **Backend**: Python with Flask
-- **Database**: SQLite (development), can be configured for PostgreSQL (production)
+- **Database**: SQLite (development), PostgreSQL (Docker and production)
 - **ORM**: SQLAlchemy
 - **Authentication**: Flask-Login with session management
 - **Frontend**: HTML, CSS with minimal JavaScript

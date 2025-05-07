@@ -25,7 +25,11 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///lms.db')
 app.config['SQLALCHEMY_ECHO'] = True  # Log SQL queries for debugging
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lms/static/uploads')
+# Set upload folder - make sure it works in both local and Docker environments
+upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lms/static/uploads')
+if not os.path.exists(upload_folder):
+    os.makedirs(upload_folder, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 app.permanent_session_lifetime = timedelta(days=7)
 
@@ -116,4 +120,12 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Error setting up messages: {str(e)}")
     
-    app.run(debug=True, port=5002)
+    # Check if we're running in Docker
+    in_docker = os.environ.get('DOCKER_CONTAINER', False)
+    debug_mode = not in_docker  # Only use debug mode outside of Docker
+    
+    # Set host to 0.0.0.0 when in Docker to make it accessible
+    host = '0.0.0.0' if in_docker else '127.0.0.1'
+    
+    print(f"Starting LMS on {host}:5002 (debug={debug_mode})")
+    app.run(debug=debug_mode, host=host, port=5002)

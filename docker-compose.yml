@@ -3,30 +3,31 @@ version: '3.8'
 services:
   web:
     build: .
-    restart: always
+    restart: unless-stopped
     ports:
       - "5002:5002"
     volumes:
       - ./lms/static/uploads:/app/lms/static/uploads
       - ./instance:/app/instance
-    env_file:
-      - .env
+    environment:
+      - FLASK_APP=app.py
+      - SECRET_KEY=your-secret-key-here
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lms
+      - ADMIN_EMAIL=admin@example.com
+      - ADMIN_PASSWORD=adminpassword
     depends_on:
       - db
-    command: >
-      sh -c "python -c 'import time; time.sleep(5)' &&
-             python setup_db.py &&
-             gunicorn --bind 0.0.0.0:5002 app:app"
+    command: python app.py
 
   db:
     image: postgres:14
-    restart: always
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-lms}
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=lms
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
