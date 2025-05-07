@@ -12,7 +12,7 @@ services:
     environment:
       - FLASK_APP=app.py
       - SECRET_KEY=your-secret-key-here
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lms
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/lms
       - ADMIN_EMAIL=admin@example.com
       - ADMIN_PASSWORD=adminpassword
     depends_on:
@@ -25,7 +25,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=postgrespassword
       - POSTGRES_USER=postgres
       - POSTGRES_DB=lms
     healthcheck:
