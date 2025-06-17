@@ -59,7 +59,16 @@ from lms.routes.teacher import teacher_bp
 from lms.routes.student import student_bp
 from lms.routes.course import course_bp
 from lms.routes.messages import messages_bp
-from lms.routes.ai_chat import ai_chat_bp
+
+# Try to import AI chat blueprint with error handling
+try:
+    from lms.routes.ai_chat import ai_chat_bp
+    AI_CHAT_AVAILABLE = True
+    print("✅ AI Chat blueprint imported successfully")
+except Exception as e:
+    print(f"❌ Failed to import AI Chat blueprint: {e}")
+    AI_CHAT_AVAILABLE = False
+
 from swagger import swagger_bp
 
 login_manager = LoginManager()
@@ -72,14 +81,62 @@ login_manager.login_message_category = 'info'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-app.register_blueprint(auth_bp)
-app.register_blueprint(admin_bp, url_prefix='/admin')
-app.register_blueprint(teacher_bp, url_prefix='/teacher')
-app.register_blueprint(student_bp, url_prefix='/student')
-app.register_blueprint(course_bp, url_prefix='/courses')
-app.register_blueprint(messages_bp, url_prefix='/messages')
-app.register_blueprint(ai_chat_bp, url_prefix='/ai-chat')
-app.register_blueprint(swagger_bp)
+# Register blueprints with error handling
+try:
+    app.register_blueprint(auth_bp)
+    print("✅ Auth blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register auth blueprint: {e}")
+
+try:
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    print("✅ Admin blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register admin blueprint: {e}")
+
+try:
+    app.register_blueprint(teacher_bp, url_prefix='/teacher')
+    print("✅ Teacher blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register teacher blueprint: {e}")
+
+try:
+    app.register_blueprint(student_bp, url_prefix='/student')
+    print("✅ Student blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register student blueprint: {e}")
+
+try:
+    app.register_blueprint(course_bp, url_prefix='/courses')
+    print("✅ Course blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register course blueprint: {e}")
+
+try:
+    app.register_blueprint(messages_bp, url_prefix='/messages')
+    print("✅ Messages blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register messages blueprint: {e}")
+
+# Register AI chat blueprint if available
+if AI_CHAT_AVAILABLE:
+    try:
+        app.register_blueprint(ai_chat_bp, url_prefix='/ai-chat')
+        print("✅ AI Chat blueprint registered")
+    except Exception as e:
+        print(f"❌ Failed to register AI Chat blueprint: {e}")
+        AI_CHAT_AVAILABLE = False
+
+try:
+    app.register_blueprint(swagger_bp)
+    print("✅ Swagger blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register swagger blueprint: {e}")
+
+# Make AI_CHAT_AVAILABLE available to templates
+@app.context_processor
+def inject_ai_chat_status():
+    return dict(AI_CHAT_AVAILABLE=AI_CHAT_AVAILABLE)
 
 @app.route('/')
 def index():
