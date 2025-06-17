@@ -10,6 +10,7 @@ os.environ['DATABASE_URL'] = 'sqlite:///lms.db'
 os.environ['SECRET_KEY'] = 'dev-secret-key-for-local-development'
 os.environ['ADMIN_EMAIL'] = 'admin@example.com'
 os.environ['ADMIN_PASSWORD'] = 'adminpassword'
+os.environ['GOOGLE_API_KEY'] = 'AIzaSyA7zgkfPqewfQsGhQi7L8OYVxsiZuOguSU'
 
 # Load environment variables (our explicit ones will override .env file)
 load_dotenv()
@@ -47,6 +48,7 @@ csrf.init_app(app)
 # Import models
 from lms.models.user import User
 from lms.models.message import Message
+from lms.models.ai_chat import AIChatMessage
 from lms.utils.db import init_db
 
 # Register blueprints
@@ -56,6 +58,7 @@ from lms.routes.teacher import teacher_bp
 from lms.routes.student import student_bp
 from lms.routes.course import course_bp
 from lms.routes.messages import messages_bp
+from lms.routes.ai_chat import ai_chat_bp
 from swagger import swagger_bp
 
 login_manager = LoginManager()
@@ -74,6 +77,7 @@ app.register_blueprint(teacher_bp, url_prefix='/teacher')
 app.register_blueprint(student_bp, url_prefix='/student')
 app.register_blueprint(course_bp, url_prefix='/courses')
 app.register_blueprint(messages_bp, url_prefix='/messages')
+app.register_blueprint(ai_chat_bp, url_prefix='/ai-chat')
 app.register_blueprint(swagger_bp)
 
 @app.route('/')

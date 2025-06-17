@@ -2480,7 +2480,7 @@ label {
 .message {
   display: flex;
   flex-direction: column;
-  max-width: 80%;
+  /* max-width: 80%; */
 }
 
 .message-sent {

@@ -136,6 +136,7 @@
                             <li><a href="{{ url_for('student.view_wishlist') }}" {% if request.path.startswith('/student/my-wishlist') %}class="active"{% endif %}><i class="fas fa-heart"></i> Wishlist</a></li>
                             <li><a href="{{ url_for('student.my_assignments') }}" {% if request.path.startswith('/student/assignments') %}class="active"{% endif %}><i class="fas fa-tasks"></i> Assignments</a></li>
                             <li><a href="{{ url_for('student.view_grades') }}" {% if request.path.startswith('/student/grades') %}class="active"{% endif %}><i class="fas fa-chart-bar"></i> Grades</a></li>
+                            <li><a href="{{ url_for('ai_chat.ai_chat') }}" {% if request.path.startswith('/ai-chat') %}class="active"{% endif %}><i class="fas fa-robot"></i> Course Advisor</a></li>
                             <li><a href="{{ url_for('messages.inbox') }}" {% if request.path.startswith('/messages') %}class="active"{% endif %}><i class="fas fa-envelope"></i> Messages
                                 <span id="messages-unread-badge" class="badge badge-danger" style="display: none;"></span>
                             </a></li>

@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Course Advisor - LMS{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <div class="breadcrumb-item"><a href="{{ url_for('student.dashboard') }}"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a></div>
+    <div class="breadcrumb-item active">AI Course Advisor</div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-robot text-primary mr-2"></i>
+                    AI Course Advisor
+                </h4>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearChat()">
+                    <i class="fas fa-trash mr-1"></i> Clear History
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <!-- Chat Area -->
+                <div id="chat-container" class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- Welcome Message -->
+                        <div class="message ai-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    <strong>Welcome to your AI Course Advisor! 🎓</strong><br><br>
+                                    I'm here to help you find the perfect courses based on your interests, goals, and background. You can ask me about:
+                                    <ul class="mb-2 mt-2">
+                                        <li>Course recommendations based on your interests</li>
+                                        <li>Learning paths for specific careers</li>
+                                        <li>Course difficulty and prerequisites</li>
+                                        <li>Time commitment for different courses</li>
+                                        <li>Pricing and enrollment information</li>
+                                    </ul>
+                                    What would you like to know about our courses?
+                                </div>
+                                <div class="message-time">just now</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Load existing conversation history -->
+                        {% for chat in history %}
+                        <div class="message user-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-text">{{ chat.message }}</div>
+                                <div class="message-time">{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                            </div>
+                        </div>
+                        <div class="message ai-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-text">{{ chat.response | safe }}</div>
+                                <div class="message-time">{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="chat-input-area">
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="form-control" placeholder="Ask me about courses..." maxlength="500">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" id="send-button" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-1 d-block">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Ask me anything about choosing courses! I can help you find the perfect learning path.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="mt-3 mb-0">AI is thinking...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+    max-height: 500px;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.user-message .message-content {
+    margin-right: 10px;
+    margin-left: 0;
+}
+
+.ai-message .message-content {
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.user-message .message-avatar {
+    background: #007bff;
+    color: white;
+}
+
+.ai-message .message-avatar {
+    background: #28a745;
+    color: white;
+}
+
+.message-content {
+    max-width: 70%;
+}
+
+.message-text {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    word-wrap: break-word;
+}
+
+.user-message .message-text {
+    background: #007bff;
+    color: white;
+}
+
+.message-time {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+    padding: 0 16px;
+}
+
+.chat-input-area {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #dee2e6;
+}
+
+.typing-indicator {
+    display: none;
+    padding: 12px 16px;
+    background: #e9ecef;
+    border-radius: 18px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.typing-indicator.show {
+    display: block;
+}
+
+/* Custom scrollbar */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .chat-container {
+        height: 500px;
+    }
+    
+    .message-content {
+        max-width: 85%;
+    }
+    
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Scroll to bottom of chat
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Format timestamp
+function formatTime(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(date);
+}
+
+// Add message to chat
+function addMessage(text, isUser = false, timestamp = null) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+    
+    const timeStr = timestamp || formatTime(new Date());
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-${isUser ? 'user' : 'robot'}"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-text">${text}</div>
+            <div class="message-time">${timeStr}</div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+// Show/hide typing indicator
+function showTyping() {
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'message ai-message';
+    typingDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="typing-indicator show">AI is typing...</div>
+        </div>
+    `;
+    
+    document.getElementById('chat-messages').appendChild(typingDiv);
+    scrollToBottom();
+}
+
+function hideTyping() {
+    const typingDiv = document.getElementById('typing-indicator');
+    if (typingDiv) {
+        typingDiv.remove();
+    }
+}
+
+// Send message to AI
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Disable input and button
+    input.disabled = true;
+    sendButton.disabled = true;
+    
+    // Add user message to chat
+    addMessage(message, true);
+    
+    // Clear input
+    input.value = '';
+    
+    // Show typing indicator
+    showTyping();
+    
+    try {
+        const response = await fetch('{{ url_for("ai_chat.send_message") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        // Hide typing indicator
+        hideTyping();
+        
+        if (response.ok) {
+            // Add AI response to chat
+            addMessage(data.ai_response, false, data.timestamp);
+        } else {
+            // Add error message
+            addMessage('Sorry, I encountered an error: ' + (data.error || 'Unknown error'), false);
+        }
+    } catch (error) {
+        hideTyping();
+        addMessage('Sorry, I\'m having trouble connecting. Please try again.', false);
+        console.error('Error:', error);
+    } finally {
+        // Re-enable input and button
+        input.disabled = false;
+        sendButton.disabled = false;
+        input.focus();
+    }
+}
+
+// Clear chat history
+async function clearChat() {
+    if (!confirm('Are you sure you want to clear your chat history? This cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('{{ url_for("ai_chat.clear_history") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        });
+        
+        if (response.ok) {
+            // Clear the chat messages (keep only welcome message)
+            const chatMessages = document.getElementById('chat-messages');
+            const welcomeMessage = chatMessages.querySelector('.message.ai-message');
+            chatMessages.innerHTML = '';
+            chatMessages.appendChild(welcomeMessage);
+            
+            // Show success message
+            addMessage('Chat history cleared successfully!', false);
+        } else {
+            const data = await response.json();
+            alert('Error clearing chat: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error clearing chat. Please try again.');
+        console.error('Error:', error);
+    }
+}
+
+// Handle Enter key in input
+document.getElementById('message-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+// Scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+    document.getElementById('message-input').focus();
+});
+</script>
+{% endblock %} 
