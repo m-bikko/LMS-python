@@ -19,6 +19,15 @@ if not exist lms\static\uploads (
     mkdir lms\static\uploads
 )
 
+rem Set environment variables for local development
+set SECRET_KEY=dev-secret-key-for-local-development
+set DATABASE_URL=sqlite:///lms.db
+set ADMIN_EMAIL=admin@example.com
+set ADMIN_PASSWORD=adminpassword
+
+echo Using SQLite database for local development...
+echo Database URL: %DATABASE_URL%
+
 rem Initialize database with demo data
 echo Setting up database...
 python setup_db.py

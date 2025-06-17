@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 from lms.utils.db import db
 from lms.utils.forms import (CourseCreationForm, MaterialForm, AssignmentForm, GradingForm,
@@ -9,13 +9,15 @@ from lms.models.course import (Course, Category, Material, Assignment, Submissio
                               ModuleProgress, TeacherSubscriptionPlan)
 from werkzeug.utils import secure_filename
 import os
+import csv
+import io
 from functools import wraps
 from datetime import datetime
 
 teacher_bp = Blueprint('teacher', __name__)
 
 # Debug flag - can be removed in production
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 def teacher_required(f):
     @wraps(f)
@@ -240,12 +242,12 @@ def create_course():
     form = CourseCreationForm()
     
     # Get available categories for the dropdown
-    categories = Category.query.all()
+    categories = Category.query.limit(100).all()  # Limit categories
     form.category.choices = [(c.id, c.name) for c in categories]
     
     # Get available subscription plans for the dropdown
     try:
-        subscription_plans = TeacherSubscriptionPlan.query.all()
+        subscription_plans = TeacherSubscriptionPlan.query.limit(20).all()  # Limit plans
         if subscription_plans:
             form.subscription_plan.choices = [(p.id, f"{p.name} - {p.price_per_month} KZT/month") for p in subscription_plans]
         else:
@@ -1082,3 +1084,127 @@ def test_results(test_id):
                           module=module,
                           test=test,
                           attempts=attempts)
+
+@teacher_bp.route('/courses/<int:course_id>/export-progress')
+@login_required
+@teacher_required
+def export_course_progress(course_id):
+    """Export student progress for a course as CSV file"""
+    course = Course.query.get_or_404(course_id)
+    
+    # Ensure the teacher is the owner of the course
+    if course.teacher_id != current_user.id:
+        flash('You do not have permission to export this course data.', 'danger')
+        return redirect(url_for('teacher.dashboard'))
+    
+    # Get all enrolled students with eager loading
+    enrollments = Enrollment.query.filter_by(course_id=course.id).options(
+        db.joinedload(Enrollment.student)
+    ).all()
+    students = [enrollment.student for enrollment in enrollments]
+    
+    # Get all modules and tests for this course with eager loading
+    modules = Module.query.filter_by(course_id=course.id).order_by(Module.order).all()
+    
+    # Pre-fetch all module progress and test attempts to reduce queries
+    student_ids = [s.id for s in students]
+    module_ids = [m.id for m in modules]
+    
+    # Get all module progress for these students
+    module_progress_dict = {}
+    if student_ids and module_ids:
+        progresses = ModuleProgress.query.filter(
+            ModuleProgress.student_id.in_(student_ids),
+            ModuleProgress.module_id.in_(module_ids)
+        ).all()
+        for progress in progresses:
+            module_progress_dict[(progress.student_id, progress.module_id)] = progress
+    
+    # Get all tests and test attempts
+    tests_dict = {}
+    test_attempts_dict = {}
+    if module_ids:
+        tests = Test.query.filter(Test.module_id.in_(module_ids)).all()
+        test_ids = [t.id for t in tests]
+        
+        for test in tests:
+            if test.module_id not in tests_dict:
+                tests_dict[test.module_id] = []
+            tests_dict[test.module_id].append(test)
+        
+        if student_ids and test_ids:
+            attempts = TestAttempt.query.filter(
+                TestAttempt.student_id.in_(student_ids),
+                TestAttempt.test_id.in_(test_ids)
+            ).order_by(TestAttempt.score.desc()).all()
+            
+            for attempt in attempts:
+                key = (attempt.student_id, attempt.test_id)
+                if key not in test_attempts_dict:
+                    test_attempts_dict[key] = attempt
+    
+    # Create CSV data structure
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Create header row
+    header = ['Student ID', 'Student Name', 'Student Email', 'Enrolled Date', 'Overall Grade']
+    
+    # Add module columns
+    for module in modules:
+        header.append(f'Module: {module.title}')
+        # Add test columns for this module
+        module_tests = tests_dict.get(module.id, [])
+        for test in module_tests:
+            header.append(f'Test: {test.title} (Module: {module.title})')
+    
+    writer.writerow(header)
+    
+    # Add student data rows
+    for student in students:
+        # Get enrollment info (already loaded via eager loading)
+        enrollment = next((e for e in enrollments if e.student_id == student.id), None)
+        
+        row = [
+            student.id,
+            student.get_full_name(),
+            student.email,
+            enrollment.enrolled_at.strftime('%Y-%m-%d %H:%M') if enrollment else 'N/A',
+            f"{enrollment.overall_grade:.1f}%" if enrollment and enrollment.overall_grade else 'Not Graded'
+        ]
+        
+        # Add module progress using pre-fetched data
+        for module in modules:
+            module_progress = module_progress_dict.get((student.id, module.id))
+            
+            if module_progress and module_progress.completed:
+                status = f"Completed ({module_progress.completed_at.strftime('%Y-%m-%d')})" if module_progress.completed_at else "Completed"
+            else:
+                status = "In Progress"
+            
+            row.append(status)
+            
+            # Add test results for this module using pre-fetched data
+            module_tests = tests_dict.get(module.id, [])
+            for test in module_tests:
+                best_attempt = test_attempts_dict.get((student.id, test.id))
+                
+                if best_attempt:
+                    if best_attempt.completed_at:
+                        test_status = f"{best_attempt.score:.1f}% ({'PASSED' if best_attempt.passed else 'FAILED'})"
+                    else:
+                        test_status = "Started"
+                else:
+                    test_status = "Not Attempted"
+                
+                row.append(test_status)
+        
+        writer.writerow(row)
+    
+    # Prepare response
+    output.seek(0)
+    response = make_response(output.getvalue())
+    response.headers['Content-Type'] = 'text/csv'
+    response.headers['Content-Disposition'] = f'attachment; filename="{course.title}_student_progress_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    return response
