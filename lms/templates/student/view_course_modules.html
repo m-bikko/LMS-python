@@ -42,6 +42,33 @@
                             {% endif %}
                         </p>
                     {% endif %}
+                    
+                    <!-- Certificate Status -->
+                    {% if progress == 100 %}
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-trophy"></i> <strong>Course Completed!</strong>
+                            <p class="mb-2">Congratulations! You have completed all modules in this course.</p>
+                            {% if certificate %}
+                                <p class="mb-0">
+                                    <i class="fas fa-certificate text-warning"></i> 
+                                    <strong>Certificate Available!</strong> 
+                                    <a href="{{ url_for('student.view_certificate', certificate_id=certificate.id) }}" class="btn btn-sm btn-success ml-2">
+                                        <i class="fas fa-eye"></i> View Certificate
+                                    </a>
+                                </p>
+                            {% else %}
+                                <p class="mb-0">
+                                    <i class="fas fa-clock text-warning"></i> 
+                                    <strong>Certificate being generated...</strong> Please refresh the page in a moment.
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% elif progress > 80 %}
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i> <strong>Almost there!</strong>
+                            You're {{ (100 - progress)|round }}% away from completing this course and earning your certificate.
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

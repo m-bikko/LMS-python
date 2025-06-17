@@ -49,6 +49,7 @@ csrf.init_app(app)
 from lms.models.user import User
 from lms.models.message import Message
 from lms.models.ai_chat import AIChatMessage
+from lms.models.certificate import Certificate
 from lms.utils.db import init_db
 
 # Register blueprints

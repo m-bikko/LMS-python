@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}My Certificates - LMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-certificate text-success"></i> My Course Certificates</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('student.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">My Certificates</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    {% if certificates %}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="alert alert-success">
+                <i class="fas fa-trophy"></i> Congratulations! You have earned <strong>{{ certificates|length }}</strong> course completion certificate{{ 's' if certificates|length != 1 else '' }}.
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for certificate in certificates %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white text-center">
+                    <i class="fas fa-certificate" style="font-size: 2rem;"></i>
+                    <h5 class="mt-2 mb-0">Certificate of Completion</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title text-center">{{ certificate.get_course_title() }}</h6>
+                    <div class="text-center mb-3">
+                        <small class="text-muted">Instructed by</small><br>
+                        <strong>{{ certificate.get_teacher_name() }}</strong>
+                    </div>
+                    <hr>
+                    <div class="certificate-details">
+                        <p class="mb-2"><strong>Student:</strong> {{ certificate.get_student_name() }}</p>
+                        <p class="mb-2"><strong>Completion Date:</strong> {{ certificate.completion_date.strftime('%B %d, %Y') }}</p>
+                        <p class="mb-2"><strong>Issue Date:</strong> {{ certificate.issued_at.strftime('%B %d, %Y') }}</p>
+                        <p class="mb-2"><strong>Certificate Number:</strong> <small class="text-muted">{{ certificate.certificate_number }}</small></p>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('student.view_certificate', certificate_id=certificate.id) }}" class="btn btn-success">
+                        <i class="fas fa-eye"></i> View Full Certificate
+                    </a>
+                    <a href="{{ url_for('student.view_course', course_id=certificate.course_id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-book"></i> View Course
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-certificate text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">No Certificates Yet</h3>
+                    <p class="text-muted">You haven't earned any course completion certificates yet.</p>
+                    <p>Complete all modules in a course to earn your first certificate!</p>
+                    <a href="{{ url_for('student.browse_courses') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-search"></i> Browse Courses
+                    </a>
+                    <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary mt-3">
+                        <i class="fas fa-tachometer-alt"></i> View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.certificate-details p {
+    font-size: 0.9rem;
+}
+
+.card.border-success {
+    box-shadow: 0 4px 6px rgba(40, 167, 69, 0.1);
+}
+
+.card.border-success:hover {
+    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.15);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %} 

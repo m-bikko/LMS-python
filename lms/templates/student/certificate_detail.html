@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate - {{ certificate.get_course_title() }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('student.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('student.view_certificates') }}">My Certificates</a></li>
+                    <li class="breadcrumb-item active">Certificate Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Certificate -->
+            <div class="certificate-container" id="certificate">
+                <div class="certificate-border">
+                    <div class="certificate-content">
+                        <!-- Header -->
+                        <div class="certificate-header text-center mb-4">
+                            <h1 class="certificate-title">Certificate of Completion</h1>
+                            <div class="certificate-ribbon">
+                                <i class="fas fa-certificate text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div class="certificate-body text-center">
+                            <p class="certificate-text">This is to certify that</p>
+                            <h2 class="student-name">{{ certificate.get_student_name() }}</h2>
+                            <p class="certificate-text">has successfully completed the course</p>
+                            <h3 class="course-title">{{ certificate.get_course_title() }}</h3>
+                            <p class="certificate-text">instructed by</p>
+                            <h4 class="instructor-name">{{ certificate.get_teacher_name() }}</h4>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="certificate-footer mt-5">
+                            <div class="row">
+                                <div class="col-6 text-center">
+                                    <div class="certificate-date">
+                                        <strong>Date of Completion</strong><br>
+                                        {{ certificate.completion_date.strftime('%B %d, %Y') }}
+                                    </div>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <div class="certificate-number">
+                                        <strong>Certificate Number</strong><br>
+                                        {{ certificate.certificate_number }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Digital Seal -->
+                        <div class="text-center mt-4">
+                            <div class="digital-seal">
+                                <i class="fas fa-stamp text-primary" style="font-size: 2rem;"></i><br>
+                                <small class="text-muted">Digitally Issued by LMS Platform</small><br>
+                                <small class="text-muted">{{ certificate.issued_at.strftime('%B %d, %Y') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <button onclick="printCertificate()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Print Certificate
+                </button>
+                <a href="{{ url_for('student.view_certificates') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Certificates
+                </a>
+                <a href="{{ url_for('student.view_course', course_id=certificate.course_id) }}" class="btn btn-info">
+                    <i class="fas fa-book"></i> View Course
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Certificate Styles */
+.certificate-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 40px;
+    margin: 20px 0;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.certificate-border {
+    border: 8px solid #007bff;
+    border-radius: 10px;
+    padding: 40px;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.certificate-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid #ffc107;
+    border-radius: 5px;
+    margin: 10px;
+    pointer-events: none;
+}
+
+.certificate-content {
+    position: relative;
+    z-index: 1;
+}
+
+.certificate-title {
+    color: #007bff;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.certificate-ribbon {
+    margin: 20px 0;
+}
+
+.certificate-text {
+    font-size: 1.2rem;
+    color: #6c757d;
+    margin: 10px 0;
+    font-family: 'Georgia', serif;
+}
+
+.student-name {
+    color: #28a745;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    font-size: 2.2rem;
+    margin: 20px 0;
+    text-decoration: underline;
+    text-decoration-color: #28a745;
+}
+
+.course-title {
+    color: #007bff;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    font-size: 1.8rem;
+    margin: 20px 0;
+    font-style: italic;
+}
+
+.instructor-name {
+    color: #6c757d;
+    font-family: 'Georgia', serif;
+    font-size: 1.4rem;
+    margin: 20px 0;
+}
+
+.certificate-footer {
+    border-top: 2px solid #dee2e6;
+    padding-top: 20px;
+}
+
+.certificate-date,
+.certificate-number {
+    color: #495057;
+    font-family: 'Georgia', serif;
+}
+
+.digital-seal {
+    background: rgba(0,123,255,0.1);
+    border-radius: 50px;
+    padding: 15px;
+    display: inline-block;
+    border: 2px dashed #007bff;
+}
+
+/* Print Styles */
+@media print {
+    .container {
+        max-width: none !important;
+        width: 100% !important;
+    }
+    
+    .certificate-container {
+        background: white !important;
+        box-shadow: none !important;
+        padding: 20px !important;
+        margin: 0 !important;
+    }
+    
+    .btn, nav, .breadcrumb {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+    }
+    
+    .certificate-border {
+        border-color: #000 !important;
+    }
+    
+    .certificate-border::before {
+        border-color: #666 !important;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .certificate-container {
+        padding: 20px;
+    }
+    
+    .certificate-border {
+        padding: 20px;
+    }
+    
+    .certificate-title {
+        font-size: 2rem;
+    }
+    
+    .student-name {
+        font-size: 1.8rem;
+    }
+    
+    .course-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+
+<script>
+function printCertificate() {
+    window.print();
+}
+</script>
+{% endblock %} 

@@ -124,7 +124,13 @@ def profile():
         form.email.data = current_user.email
         form.about_me.data = current_user.about_me
     
-    return render_template('auth/profile.html', form=form)
+    # Get student certificates if user is a student
+    certificates = []
+    if current_user.is_student():
+        from lms.utils.course_completion import get_student_certificates
+        certificates = get_student_certificates(current_user.id)
+    
+    return render_template('auth/profile.html', form=form, certificates=certificates)
 
 @auth_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required

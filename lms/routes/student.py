@@ -11,6 +11,7 @@ import json
 from werkzeug.utils import secure_filename
 import os
 from functools import wraps
+from lms.utils.course_completion import generate_certificate_if_completed, get_student_certificates
 
 student_bp = Blueprint('student', __name__)
 
@@ -514,10 +515,18 @@ def view_course_modules(course_id):
             'test_completion': test_completion
         })
     
+    # Check for course completion certificate
+    from lms.models.certificate import Certificate
+    certificate = Certificate.query.filter_by(
+        student_id=current_user.id,
+        course_id=course.id
+    ).first()
+    
     return render_template('student/view_course_modules.html',
                           course=course,
                           module_data=module_data,
-                          enrollment=enrollment)
+                          enrollment=enrollment,
+                          certificate=certificate)
 
 @student_bp.route('/modules/<int:module_id>')
 @login_required
@@ -572,7 +581,6 @@ def view_module(module_id):
             completed=False
         )
         db.session.add(progress)
-        db.session.commit()
     
     return render_template('student/view_module.html',
                           course=course,
@@ -635,7 +643,14 @@ def complete_module(module_id):
     progress.completed_at = datetime.utcnow()
     db.session.commit()
     
-    flash('Module completed successfully!', 'success')
+    # Check if course is now completed and generate certificate
+    certificate = generate_certificate_if_completed(current_user.id, course.id)
+    
+    if certificate:
+        flash(f'🎉 Congratulations! You have completed the course "{course.title}" and earned a certificate!', 'success')
+    else:
+        flash('Module completed successfully!', 'success')
+    
     return redirect(url_for('student.view_course_modules', course_id=course.id))
 
 @student_bp.route('/tests/<int:test_id>')
@@ -1024,3 +1039,27 @@ def teacher_application():
             flash(f'Error uploading certificate: {str(e)}', 'danger')
     
     return render_template('student/teacher_application.html', form=form)
+
+@student_bp.route('/my-certificates')
+@login_required
+@student_required
+def view_certificates():
+    """View all certificates earned by the student"""
+    certificates = get_student_certificates(current_user.id)
+    
+    return render_template('student/view_certificates.html', certificates=certificates)
+
+@student_bp.route('/certificates/<int:certificate_id>')
+@login_required
+@student_required  
+def view_certificate(certificate_id):
+    """View a specific certificate"""
+    from lms.models.certificate import Certificate
+    certificate = Certificate.query.get_or_404(certificate_id)
+    
+    # Ensure the certificate belongs to the current user
+    if certificate.student_id != current_user.id:
+        flash('You do not have permission to view this certificate.', 'danger')
+        return redirect(url_for('student.view_certificates'))
+    
+    return render_template('student/certificate_detail.html', certificate=certificate)

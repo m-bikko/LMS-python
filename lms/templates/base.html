@@ -50,6 +50,58 @@
             margin: 0 0.75rem;
         }
         
+        /* Responsive improvements */
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        
+        .navbar-links li {
+            margin: 0 0.25rem;
+        }
+        
+        .navbar-links a {
+            padding: 0.5rem 0.75rem;
+            white-space: nowrap;
+        }
+        
+        /* Compact mode for smaller screens */
+        @media (max-width: 1200px) {
+            .navbar-links a {
+                padding: 0.5rem 0.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .nav-divider {
+                margin: 0 0.5rem;
+            }
+        }
+        
+        /* Hide text on very small screens, show only icons */
+        @media (max-width: 1050px) {
+            .navbar-links a {
+                padding: 0.5rem 0.4rem;
+            }
+            
+            /* Hide text, keep icons */
+            .navbar-links a i + * {
+                display: none;
+            }
+            
+            .navbar-links a i {
+                margin-right: 0 !important;
+            }
+            
+            /* Keep the badge visible */
+            .badge {
+                display: inline-block !important;
+                position: absolute;
+                top: -5px;
+                right: -5px;
+            }
+        }
+        
         @media (max-width: 992px) {
             .navbar-toggle {
                 display: block;
@@ -88,6 +140,15 @@
                 width: 100%;
                 padding: 0.75rem 1rem;
                 border-radius: 6px;
+            }
+            
+            /* Show full text in mobile dropdown */
+            .navbar-links a i + * {
+                display: inline !important;
+            }
+            
+            .navbar-links a i {
+                margin-right: 0.5rem !important;
             }
             
             .nav-divider {
@@ -134,10 +195,11 @@
                             <li><a href="{{ url_for('student.dashboard') }}" {% if request.path.startswith('/student/dashboard') %}class="active"{% endif %}><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                             <li><a href="{{ url_for('student.browse_courses') }}" {% if request.path.startswith('/student/courses') and not 'wishlist' in request.path %}class="active"{% endif %}><i class="fas fa-book-open"></i> Courses</a></li>
                             <li><a href="{{ url_for('student.view_wishlist') }}" {% if request.path.startswith('/student/my-wishlist') %}class="active"{% endif %}><i class="fas fa-heart"></i> Wishlist</a></li>
-                            <li><a href="{{ url_for('student.my_assignments') }}" {% if request.path.startswith('/student/assignments') %}class="active"{% endif %}><i class="fas fa-tasks"></i> Assignments</a></li>
+                            <li><a href="{{ url_for('student.my_assignments') }}" {% if request.path.startswith('/student/assignments') %}class="active"{% endif %}><i class="fas fa-tasks"></i> Tasks</a></li>
                             <li><a href="{{ url_for('student.view_grades') }}" {% if request.path.startswith('/student/grades') %}class="active"{% endif %}><i class="fas fa-chart-bar"></i> Grades</a></li>
-                            <li><a href="{{ url_for('ai_chat.ai_chat') }}" {% if request.path.startswith('/ai-chat') %}class="active"{% endif %}><i class="fas fa-robot"></i> Course Advisor</a></li>
-                            <li><a href="{{ url_for('messages.inbox') }}" {% if request.path.startswith('/messages') %}class="active"{% endif %}><i class="fas fa-envelope"></i> Messages
+                            <li><a href="{{ url_for('student.view_certificates') }}" {% if request.path.startswith('/student/my-certificates') or request.path.startswith('/student/certificates') %}class="active"{% endif %}><i class="fas fa-certificate"></i> Certs</a></li>
+                            <li><a href="{{ url_for('ai_chat.ai_chat') }}" {% if request.path.startswith('/ai-chat') %}class="active"{% endif %}><i class="fas fa-robot"></i> AI Chat</a></li>
+                            <li><a href="{{ url_for('messages.inbox') }}" {% if request.path.startswith('/messages') %}class="active"{% endif %}><i class="fas fa-envelope"></i> Inbox
                                 <span id="messages-unread-badge" class="badge badge-danger" style="display: none;"></span>
                             </a></li>
                         {% endif %}
