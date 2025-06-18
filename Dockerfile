@@ -2,11 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (minimal for SQLite)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libpq-dev \
-    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies first to leverage Docker cache
@@ -16,13 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create directories for uploads if they don't exist
-RUN mkdir -p lms/static/uploads/course_images
-RUN mkdir -p lms/static/uploads/certificates
-RUN mkdir -p lms/static/uploads/payment_receipts
+# Create directories for uploads and database
+RUN mkdir -p lms/static/uploads/course_images && \
+    mkdir -p lms/static/uploads/certificates && \
+    mkdir -p lms/static/uploads/payment_receipts && \
+    mkdir -p instance
 
 # Set environment variables
-ENV FLASK_APP=app.py
+ENV FLASK_APP=app_simple.py
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DOCKER_CONTAINER=true
@@ -31,9 +30,9 @@ ENV DOCKER_CONTAINER=true
 EXPOSE 5002
 
 # Use entrypoint script to handle initialization
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+COPY docker-entrypoint-simple.sh /usr/local/bin/docker-entrypoint-simple.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint-simple.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-simple.sh"]
 
-# Default command - can be overridden in docker-compose
-CMD ["python", "app.py"]
+# Default command - runs app_simple.py
+CMD ["python", "app_simple.py"]

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./lms/static/uploads:/app/lms/static/uploads
+      - ./instance:/app/instance
+      - ./lms.db:/app/lms.db
+    environment:
+      - FLASK_APP=app_simple.py
+      - SECRET_KEY=your-production-secret-key-change-this
+      - DATABASE_URL=sqlite:///lms.db
+      - ADMIN_EMAIL=admin@example.com
+      - ADMIN_PASSWORD=adminpassword
+      - GOOGLE_API_KEY=your-google-api-key-here
+    command: python app_simple.py 

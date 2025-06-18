@@ -155,6 +155,9 @@ if __name__ == '__main__':
         init_db()
         print("Database initialized successfully.")
     
-    print("Starting LMS on 127.0.0.1:5002 (production mode)")
+    # Determine host based on environment
+    host = '0.0.0.0' if os.getenv('DOCKER_CONTAINER') else '127.0.0.1'
+    print(f"Starting LMS on {host}:5002 (production mode)")
+    
     # Run without debug mode to avoid watchdog issues
-    app.run(debug=False, host='127.0.0.1', port=5002) 
+    app.run(debug=False, host=host, port=5002) 
