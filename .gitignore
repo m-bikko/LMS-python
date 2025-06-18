@@ -22,9 +22,9 @@ wheels/
 MANIFEST
 
 # Virtual Environment
-venv/
-env/
-ENV/
+# venv/
+# env/
+# ENV/
 
 # Flask
 instance/
@@ -42,7 +42,7 @@ flask_session/
 .idea/
 
 # Environment variables
-.env
+# .env
 
 # Logs
 *.log
