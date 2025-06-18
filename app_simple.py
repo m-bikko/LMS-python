@@ -50,6 +50,7 @@ from lms.models.user import User
 from lms.models.message import Message
 from lms.models.ai_chat import AIChatMessage
 from lms.models.certificate import Certificate
+from lms.models.discussion import DiscussionGroup, DiscussionMessage, DiscussionMessageRead
 from lms.utils.db import init_db
 
 # Register blueprints
@@ -59,6 +60,7 @@ from lms.routes.teacher import teacher_bp
 from lms.routes.student import student_bp
 from lms.routes.course import course_bp
 from lms.routes.messages import messages_bp
+from lms.routes.discussions import discussions_bp
 
 # Try to import AI chat blueprint with error handling
 try:
@@ -117,6 +119,12 @@ try:
     print("✅ Messages blueprint registered")
 except Exception as e:
     print(f"❌ Failed to register messages blueprint: {e}")
+
+try:
+    app.register_blueprint(discussions_bp, url_prefix='/discussions')
+    print("✅ Discussions blueprint registered")
+except Exception as e:
+    print(f"❌ Failed to register discussions blueprint: {e}")
 
 # Register AI chat blueprint if available
 if AI_CHAT_AVAILABLE:

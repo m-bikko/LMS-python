@@ -252,6 +252,16 @@ def enroll_course(course_id):
         db.session.add(enrollment)
         db.session.commit()
         
+        # Create discussion group for this course if it doesn't exist
+        try:
+            from lms.models.discussion import DiscussionGroup
+            existing_group = DiscussionGroup.query.filter_by(course_id=course.id).first()
+            if not existing_group:
+                DiscussionGroup.create_for_course(course.id)
+        except Exception as e:
+            # Log error but don't fail enrollment
+            print(f"Warning: Could not create discussion group for course {course.id}: {e}")
+        
         flash('Your enrollment request has been submitted with payment receipt. You will have full access to the course after payment verification.', 'success')
         return redirect(url_for('student.view_course', course_id=course.id))
     

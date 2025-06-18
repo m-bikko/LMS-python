@@ -59,6 +59,11 @@
             <a href="{{ url_for('student.view_course_modules', course_id=course.id) }}" class="btn btn-primary ml-2">
                 <i class="fas fa-th-list"></i> View Course Modules
             </a>
+            {% if enrolled.payment_verified %}
+                <a href="{{ url_for('discussions.list_discussions') }}" class="btn btn-info ml-2">
+                    <i class="fas fa-comments"></i> Course Discussions
+                </a>
+            {% endif %}
         {% endif %}
     </div>
 </div>

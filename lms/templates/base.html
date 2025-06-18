@@ -200,6 +200,9 @@
                             <li><a href="{{ url_for('teacher.dashboard') }}" {% if request.path.startswith('/teacher/dashboard') %}class="active"{% endif %}><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                             <li><a href="{{ url_for('teacher.create_course') }}" {% if request.path.startswith('/teacher/create-course') %}class="active"{% endif %}><i class="fas fa-plus-circle"></i> Create Course</a></li>
                             <li><a href="{{ url_for('teacher.certificate') }}" {% if request.path.startswith('/teacher/certificate') %}class="active"{% endif %}><i class="fas fa-certificate"></i> Certificate</a></li>
+                            <li><a href="{{ url_for('discussions.list_discussions') }}" {% if request.path.startswith('/discussions') %}class="active"{% endif %}><i class="fas fa-comments"></i> Discussions
+                                <span id="discussions-unread-badge" class="badge badge-danger" style="display: none;"></span>
+                            </a></li>
                             <li><a href="{{ url_for('messages.inbox') }}" {% if request.path.startswith('/messages') %}class="active"{% endif %}><i class="fas fa-envelope"></i> Messages
                                 <span id="messages-unread-badge" class="badge badge-danger" style="display: none;"></span>
                             </a></li>
@@ -210,6 +213,9 @@
                             <li><a href="{{ url_for('student.my_assignments') }}" {% if request.path.startswith('/student/assignments') %}class="active"{% endif %}><i class="fas fa-tasks"></i> Tasks</a></li>
                             <li><a href="{{ url_for('student.view_grades') }}" {% if request.path.startswith('/student/grades') %}class="active"{% endif %}><i class="fas fa-chart-bar"></i> Grades</a></li>
                             <li><a href="{{ url_for('student.view_certificates') }}" {% if request.path.startswith('/student/my-certificates') or request.path.startswith('/student/certificates') %}class="active"{% endif %}><i class="fas fa-certificate"></i> Certs</a></li>
+                            <li><a href="{{ url_for('discussions.list_discussions') }}" {% if request.path.startswith('/discussions') %}class="active"{% endif %}><i class="fas fa-comments"></i> Discussions
+                                <span id="discussions-unread-badge" class="badge badge-danger" style="display: none;"></span>
+                            </a></li>
                             <li><a href="{{ url_for('ai_chat.ai_chat') }}" {% if request.path.startswith('/ai-chat') %}class="active"{% endif %}><i class="fas fa-robot"></i> AI Chat</a></li>
                             <li><a href="{{ url_for('messages.inbox') }}" {% if request.path.startswith('/messages') %}class="active"{% endif %}><i class="fas fa-envelope"></i> Inbox
                                 <span id="messages-unread-badge" class="badge badge-danger" style="display: none;"></span>
@@ -429,6 +435,57 @@
                     }
                 })
                 .catch(error => console.error('Error fetching unread messages:', error));
+            
+            // Initial unread discussions count check
+            fetch('{{ url_for("discussions.unread_count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const unreadBadge = document.getElementById('discussions-unread-badge');
+                    if (unreadBadge) {
+                        if (data.count > 0) {
+                            unreadBadge.textContent = data.count;
+                            unreadBadge.style.display = 'inline-block';
+                        } else {
+                            unreadBadge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching unread discussions:', error));
+                
+            // Periodically update unread counts
+            setInterval(function() {
+                // Update messages count
+                fetch('{{ url_for("messages.unread_count") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const unreadBadge = document.getElementById('messages-unread-badge');
+                        if (unreadBadge) {
+                            if (data.count > 0) {
+                                unreadBadge.textContent = data.count;
+                                unreadBadge.style.display = 'inline-block';
+                            } else {
+                                unreadBadge.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error fetching unread messages:', error));
+                
+                // Update discussions count
+                fetch('{{ url_for("discussions.unread_count") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const unreadBadge = document.getElementById('discussions-unread-badge');
+                        if (unreadBadge) {
+                            if (data.count > 0) {
+                                unreadBadge.textContent = data.count;
+                                unreadBadge.style.display = 'inline-block';
+                            } else {
+                                unreadBadge.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error fetching unread discussions:', error));
+            }, 30000); // Update every 30 seconds
             {% endif %}
             
             // Enable tooltips
