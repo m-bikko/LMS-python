@@ -178,7 +178,15 @@ docker-compose up -d
 # http://YOUR_VM_EXTERNAL_IP:5002
 
 # Get the external IP
-curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip
+beimbet_m0434@lms:~/LMS-python$ docker-compose up -d
+[+] Running 2/2
+ ✔ Network lms-python_default  Created                                                                                                                                                                             0.1s 
+ ✔ Container lms-python-web-1  Started                                                                                                                                                                             0.1s 
+beimbet_m0434@lms:~/LMS-python$ curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip
+34.118.8.14beimbet_m0434@lms:~/LMS-python$ sudo docker ps
+CONTAINER ID   IMAGE            COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+7e3b90faf6cf   lms-python-web   "/usr/local/bin/dock…"   17 seconds ago   Up 17 seconds   0.0.0.0:5002->5002/tcp, [::]:5002->5002/tcp   lms-python-web-1
+beimbet_m0434@lms:~/LMS-python$ 
 ```
 
 #### 4.2 Initial Login
